@@ -1,9 +1,7 @@
-import PhaseBoard from "@/components/board/PhaseBoard";
+import { redirect } from "next/navigation";
 
+// The landing/showcase page ships in sub-project 4. Until then, the root
+// sends visitors straight to the board.
 export default function Home() {
-  return (
-    <main className="flex flex-1 items-center justify-center p-4">
-      <PhaseBoard />
-    </main>
-  );
+  redirect("/board");
 }

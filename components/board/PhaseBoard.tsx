@@ -18,9 +18,10 @@ import { useBoardStore } from "@/stores/board";
     lib/formations.ts -> FORMATIONS (data)
     stores/board.ts   -> Zustand board state
 
-  Brand colors are the two CSS vars --brand / --brand-2 near the top of styles.
-  Phase colors (--ip / --oop) are kept separate on purpose: they're functional
-  (warm = with ball, cool = without), not brand.
+  Design tokens (brand --color-brand/-2, phase --color-ip/--color-oop, surfaces,
+  text) live in app/globals.css and are exposed both as Tailwind utilities and as
+  raw CSS vars. Phase colors are kept functional (warm = with ball, cool =
+  without) and separate from the brand on purpose.
 */
 
 // --- Geometry: pitch coords (0-100) -> svg viewBox units ---
@@ -46,8 +47,8 @@ export default function PhaseBoard() {
 
   const selected = players.find((p) => p.id === selectedId) || null;
   const isIP = phase === "ip";
-  const phaseColor = isIP ? "var(--ip)" : "var(--oop)";
-  const phaseBg = isIP ? "var(--ip-bg)" : "var(--oop-bg)";
+  const phaseColor = isIP ? "var(--color-ip)" : "var(--color-oop)";
+  const phaseBg = isIP ? "var(--color-ip-bg)" : "var(--color-oop-bg)";
 
   const match = useMemo(() => {
     if (!selected || selected.family === "gk") return null;
@@ -119,23 +120,19 @@ export default function PhaseBoard() {
   }, [players, formationKey]);
 
   return (
-    <div style={S.root} className="phase-root">
-      <style>{CSS}</style>
+    <div className="mx-auto w-full max-w-[1360px] px-4 py-6 sm:px-6">
+      <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <span className="text-xs text-faint">FM26 tactic board</span>
 
-      <header style={S.header}>
-        <div style={S.brandWrap}>
-          <span style={S.logoMark} aria-hidden="true" />
-          <span style={S.wordmark}>Pitchflow</span>
-          <span style={S.tagline}>FM26 tactic board</span>
-        </div>
-
-        <div style={S.controls}>
-          <label style={S.selWrap}>
-            <span style={S.selLabel}>Formation</span>
+        <div className="flex items-end gap-2.5">
+          <label className="flex flex-col gap-1">
+            <span className="text-[11px] uppercase tracking-[0.06em] text-faint">
+              Formation
+            </span>
             <select
               value={formationKey}
               onChange={(e) => changeFormation(e.target.value as FormationKey)}
-              style={S.select}
+              className="rounded-lg border border-border bg-surface-2 px-2.5 py-1.5 text-[13px] text-text transition-colors hover:border-brand-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
             >
               {Object.keys(FORMATIONS).map((k) => (
                 <option key={k} value={k}>
@@ -144,47 +141,49 @@ export default function PhaseBoard() {
               ))}
             </select>
           </label>
-          <button onClick={() => toggleJson()} style={S.ghostBtn} className="jbtn">
-            {showJson ? "Skjul JSON" : "Vis JSON"}
+          <button
+            onClick={() => toggleJson()}
+            className="cursor-pointer rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] text-dim transition-colors hover:border-brand-2 hover:text-brand-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+          >
+            {showJson ? "Hide JSON" : "Show JSON"}
           </button>
         </div>
       </header>
 
-      <div style={S.phaseRow}>
+      <div className="mb-3.5 flex flex-wrap items-center gap-2">
         <button
           onClick={() => setPhase("ip")}
-          style={{
-            ...S.phaseBtn,
-            ...(isIP
-              ? { background: "var(--ip-bg)", color: "var(--ip)", borderColor: "var(--ip)" }
-              : {}),
-          }}
+          className={`inline-flex cursor-pointer items-center gap-2 rounded-[10px] border px-4 py-2.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
+            isIP
+              ? "border-ip bg-ip-bg text-ip"
+              : "border-border bg-surface text-dim"
+          }`}
         >
-          <span style={{ ...S.dot, background: "var(--ip)" }} /> Med bold
+          <span className="inline-block size-2 rounded-full bg-ip" /> In possession
         </button>
         <button
           onClick={() => setPhase("oop")}
-          style={{
-            ...S.phaseBtn,
-            ...(!isIP
-              ? { background: "var(--oop-bg)", color: "var(--oop)", borderColor: "var(--oop)" }
-              : {}),
-          }}
+          className={`inline-flex cursor-pointer items-center gap-2 rounded-[10px] border px-4 py-2.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
+            !isIP
+              ? "border-oop bg-oop-bg text-oop"
+              : "border-border bg-surface text-dim"
+          }`}
         >
-          <span style={{ ...S.dot, background: "var(--oop)" }} /> Uden bold
+          <span className="inline-block size-2 rounded-full bg-oop" /> Out of
+          possession
         </button>
-        <span style={S.phaseHint}>
+        <span className="ml-1 text-xs text-faint">
           {isIP
-            ? "in possession — hvor holdet står med bolden"
-            : "out of possession — hvor holdet forsvarer"}
+            ? "in possession — where the team has the ball"
+            : "out of possession — where the team defends"}
         </span>
       </div>
 
-      <div style={S.main} className="phase-main">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div
+          className="w-full rounded-[14px] border border-border bg-surface p-3 lg:max-w-[720px]"
           style={{
-            ...S.pitchCard,
-            boxShadow: `inset 0 0 0 1px var(--border), inset 0 0 70px ${
+            boxShadow: `inset 0 0 0 1px var(--color-border), inset 0 0 70px ${
               isIP ? "rgba(232,169,58,0.05)" : "rgba(74,158,224,0.05)"
             }`,
           }}
@@ -192,7 +191,7 @@ export default function PhaseBoard() {
           <svg
             ref={svgRef}
             viewBox={`0 0 ${VB_W} ${VB_H}`}
-            style={S.svg}
+            className="block w-full touch-none select-none"
             onPointerMove={onMove}
             onPointerUp={onUp}
             onPointerLeave={onUp}
@@ -215,7 +214,7 @@ export default function PhaseBoard() {
                   cy={mapY(selected.pos[isIP ? "oop" : "ip"].y)}
                   r="3.4"
                   fill="none"
-                  stroke={isIP ? "var(--oop)" : "var(--ip)"}
+                  stroke={isIP ? "var(--color-oop)" : "var(--color-ip)"}
                   strokeWidth="0.6"
                   strokeDasharray="1.6 1.4"
                   opacity="0.8"
@@ -248,7 +247,7 @@ export default function PhaseBoard() {
                     fontSize="2.9"
                     fontWeight="600"
                     fill={txt}
-                    style={{ pointerEvents: "none", fontFamily: "var(--mono)" }}
+                    style={{ pointerEvents: "none" }}
                   >
                     {p.lbl}
                   </text>
@@ -256,59 +255,88 @@ export default function PhaseBoard() {
               );
             })}
           </svg>
-          <p style={S.pitchFoot}>
-            Træk en spiller. Den stiplede ring viser hvor han står i den anden fase.
+          <p className="mt-2 px-0.5 text-center text-[11.5px] text-faint">
+            Drag a player. The dashed ring shows where they stand in the other
+            phase.
           </p>
         </div>
 
-        <aside style={S.inspector}>
+        <aside className="rounded-[14px] border border-border bg-surface p-[18px] lg:min-h-[260px]">
           {!selected || selected.family === "gk" ? (
-            <div style={S.inspEmpty}>
-              <div style={S.inspPos}>{selected ? selected.lbl : "—"}</div>
-              <div style={S.roleName}>Målmand</div>
-              <p style={S.note}>
-                Fast position. Vælg en markspiller for at se rolleforslag.
+            <div className="flex flex-col gap-1.5">
+              <div className="text-[13px] text-faint">
+                {selected ? selected.lbl : "—"}
+              </div>
+              <div className="mb-3.5 text-[23px] font-medium leading-[1.1] tracking-[-0.01em]">
+                Goalkeeper
+              </div>
+              <p className="mt-1 text-[13px] leading-relaxed text-dim">
+                Fixed position. Select an outfield player to see role
+                suggestions.
               </p>
             </div>
           ) : (
             <>
-              <div style={S.inspTop}>
-                <span style={{ ...S.posBadge, background: phaseBg, color: phaseColor }}>
+              <div className="mb-4 flex items-center gap-2">
+                <span
+                  className="rounded-md px-2.5 py-[3px] text-[13px] font-semibold"
+                  style={{ background: phaseBg, color: phaseColor }}
+                >
                   {selected.lbl}
                 </span>
-                <span style={S.phaseTag}>{isIP ? "med bold" : "uden bold"}</span>
-              </div>
-
-              <div style={S.roleLabel}>Foreslået rolle</div>
-              <div style={S.roleName}>{match!.role.name}</div>
-
-              <div style={S.scoreRow}>
-                <div style={S.scoreTrack}>
-                  <div style={{ ...S.scoreFill, width: `${match!.conf}%`, background: phaseColor }} />
-                </div>
-                <span style={{ ...S.scoreNum, color: phaseColor }}>
-                  {match!.conf}
-                  <span style={S.scorePct}>%</span>
+                <span className="text-xs text-faint">
+                  {isIP ? "in possession" : "out of possession"}
                 </span>
               </div>
 
-              <div style={S.kv}>
-                <span style={S.kvKey}>Instruks</span>
-                <span style={S.kvVal}>{match!.role.instr}</span>
+              <div className="mb-1.5 text-[11px] uppercase tracking-[0.06em] text-faint">
+                Suggested role
+              </div>
+              <div className="mb-3.5 text-[23px] font-medium leading-[1.1] tracking-[-0.01em]">
+                {match!.role.name}
               </div>
 
-              <div style={S.roleLabel}>Hvorfor</div>
-              <div style={S.tags}>
+              <div className="mb-[18px] flex items-center gap-2.5">
+                <div className="h-1.5 flex-1 overflow-hidden rounded-[3px] bg-surface-2">
+                  <div
+                    className="h-full rounded-[3px] transition-[width] duration-100"
+                    style={{ width: `${match!.conf}%`, background: phaseColor }}
+                  />
+                </div>
+                <span
+                  className="min-w-11 text-right text-[17px] font-semibold tabular-nums"
+                  style={{ color: phaseColor }}
+                >
+                  {match!.conf}
+                  <span className="ml-px text-[11px] opacity-70">%</span>
+                </span>
+              </div>
+
+              <div className="mb-4 flex items-center justify-between border-y border-border py-2.5">
+                <span className="text-[13px] text-dim">Instruction</span>
+                <span className="text-[13px] font-medium">
+                  {match!.role.instr}
+                </span>
+              </div>
+
+              <div className="mb-1.5 text-[11px] uppercase tracking-[0.06em] text-faint">
+                Why
+              </div>
+              <div className="mb-3.5 flex flex-wrap gap-1.5">
                 {match!.role.tags.map((t) => (
-                  <span key={t} style={{ ...S.tag, background: phaseBg, color: phaseColor }}>
+                  <span
+                    key={t}
+                    className="rounded-[7px] px-2.5 py-1 text-xs font-medium"
+                    style={{ background: phaseBg, color: phaseColor }}
+                  >
                     {t}
                   </span>
                 ))}
               </div>
 
               {match!.second && (
-                <div style={S.second}>
-                  Næstbedste: {match!.second.name} · {match!.conf2}%
+                <div className="mt-0.5 text-[12.5px] text-faint">
+                  Second best: {match!.second.name} · {match!.conf2}%
                 </div>
               )}
             </>
@@ -317,95 +345,18 @@ export default function PhaseBoard() {
       </div>
 
       {showJson && (
-        <div style={S.jsonCard}>
-          <div style={S.jsonHead}>
-            <span style={S.jsonTitle}>Taktik som JSON</span>
-            <span style={S.jsonSub}>= din Supabase-række + dit FM-opskriftsark</span>
+        <div className="mt-4 overflow-hidden rounded-[14px] border border-border bg-surface">
+          <div className="flex items-baseline gap-2.5 border-b border-border px-4 py-3">
+            <span className="text-[13px] font-medium">Tactic as JSON</span>
+            <span className="text-xs text-faint">
+              = your Supabase row + your FM setup sheet
+            </span>
           </div>
-          <pre style={S.pre}>{tacticJson}</pre>
+          <pre className="m-0 max-h-80 overflow-auto p-4 text-xs leading-relaxed text-dim tabular-nums">
+            {tacticJson}
+          </pre>
         </div>
       )}
     </div>
   );
 }
-
-const CSS = `
-@import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@500;600&display=swap');
-.phase-root *{box-sizing:border-box}
-.phase-root select:focus,.phase-root button:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
-@media (max-width:760px){.phase-main{grid-template-columns:1fr !important}}
-.phase-root select:hover{border-color:var(--brand-2)}
-.phase-root .jbtn{transition:border-color .15s,color .15s}
-.phase-root .jbtn:hover{border-color:var(--brand-2);color:var(--brand-2)}
-`;
-
-const S: Record<string, React.CSSProperties> = {
-  root: {
-    "--bg": "#0E1218",
-    "--surface": "#161B24",
-    "--surface2": "#1E2530",
-    "--border": "rgba(255,255,255,0.09)",
-    "--borderStrong": "rgba(255,255,255,0.16)",
-    "--text": "#E7ECF3",
-    "--dim": "#98A2B3",
-    "--faint": "#5C6675",
-    "--brand": "#6260FF",
-    "--brand-2": "#E4E4FF",
-    "--ip": "#E8A93A",
-    "--ip-bg": "rgba(232,169,58,0.14)",
-    "--oop": "#4A9EE0",
-    "--oop-bg": "rgba(74,158,224,0.14)",
-    "--mono": "'JetBrains Mono', ui-monospace, monospace",
-    background: "var(--bg)",
-    color: "var(--text)",
-    fontFamily: "'Inter', system-ui, sans-serif",
-    padding: "20px",
-    borderRadius: "16px",
-    maxWidth: "920px",
-    margin: "0 auto",
-  } as React.CSSProperties,
-  header: { display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px", marginBottom: "16px" },
-  brandWrap: { display: "flex", alignItems: "center", gap: "10px" },
-  logoMark: { width: "14px", height: "14px", borderRadius: "4px", background: "var(--brand)", display: "inline-block", transform: "rotate(45deg)" },
-  wordmark: { fontFamily: "'Satoshi', sans-serif", fontWeight: 700, fontSize: "22px", letterSpacing: "-0.02em" },
-  tagline: { fontSize: "12px", color: "var(--faint)", borderLeft: "1px solid var(--border)", paddingLeft: "10px", marginLeft: "2px" },
-  controls: { display: "flex", alignItems: "flex-end", gap: "10px" },
-  selWrap: { display: "flex", flexDirection: "column", gap: "4px" },
-  selLabel: { fontSize: "11px", color: "var(--faint)", textTransform: "uppercase", letterSpacing: "0.06em" },
-  select: { background: "var(--surface2)", color: "var(--text)", border: "1px solid var(--border)", borderRadius: "8px", padding: "7px 10px", fontSize: "13px", fontFamily: "var(--mono)" },
-  ghostBtn: { background: "transparent", color: "var(--dim)", border: "1px solid var(--border)", borderRadius: "8px", padding: "8px 12px", fontSize: "13px", cursor: "pointer" },
-  phaseRow: { display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px", flexWrap: "wrap" },
-  phaseBtn: { display: "inline-flex", alignItems: "center", gap: "8px", background: "var(--surface)", color: "var(--dim)", borderWidth: "1px", borderStyle: "solid", borderColor: "var(--border)", borderRadius: "10px", padding: "9px 16px", fontSize: "14px", fontWeight: 500, cursor: "pointer" },
-  dot: { width: "8px", height: "8px", borderRadius: "50%", display: "inline-block" },
-  phaseHint: { fontSize: "12px", color: "var(--faint)", marginLeft: "4px" },
-  main: { display: "grid", gridTemplateColumns: "1.55fr 1fr", gap: "16px" },
-  pitchCard: { background: "var(--surface)", borderRadius: "14px", padding: "12px", border: "1px solid var(--border)" },
-  svg: { width: "100%", display: "block", touchAction: "none", userSelect: "none" },
-  pitchFoot: { fontSize: "11.5px", color: "var(--faint)", margin: "8px 2px 0", textAlign: "center" },
-  inspector: { background: "var(--surface)", borderRadius: "14px", padding: "18px", border: "1px solid var(--border)", minHeight: "260px" },
-  inspEmpty: { display: "flex", flexDirection: "column", gap: "6px" },
-  inspTop: { display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" },
-  posBadge: { fontFamily: "var(--mono)", fontWeight: 600, fontSize: "13px", padding: "3px 9px", borderRadius: "6px" },
-  phaseTag: { fontSize: "12px", color: "var(--faint)" },
-  inspPos: { fontFamily: "var(--mono)", fontSize: "13px", color: "var(--faint)" },
-  roleLabel: { fontSize: "11px", color: "var(--faint)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "5px" },
-  roleName: { fontFamily: "'Satoshi', sans-serif", fontSize: "23px", fontWeight: 500, lineHeight: 1.1, marginBottom: "14px", letterSpacing: "-0.01em" },
-  scoreRow: { display: "flex", alignItems: "center", gap: "10px", marginBottom: "18px" },
-  scoreTrack: { flex: 1, height: "6px", background: "var(--surface2)", borderRadius: "3px", overflow: "hidden" },
-  scoreFill: { height: "100%", borderRadius: "3px", transition: "width 0.12s ease" },
-  scoreNum: { fontFamily: "var(--mono)", fontWeight: 600, fontSize: "17px", minWidth: "44px", textAlign: "right" },
-  scorePct: { fontSize: "11px", opacity: 0.7, marginLeft: "1px" },
-  kv: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", marginBottom: "16px" },
-  kvKey: { fontSize: "13px", color: "var(--dim)" },
-  kvVal: { fontSize: "13px", fontWeight: 500, fontFamily: "var(--mono)" },
-  tags: { display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "14px" },
-  tag: { fontSize: "12px", padding: "4px 10px", borderRadius: "7px", fontWeight: 500 },
-  second: { fontSize: "12.5px", color: "var(--faint)", marginTop: "2px" },
-  note: { fontSize: "13px", color: "var(--dim)", lineHeight: 1.5, marginTop: "4px" },
-  jsonCard: { marginTop: "16px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "14px", overflow: "hidden" },
-  jsonHead: { display: "flex", alignItems: "baseline", gap: "10px", padding: "12px 16px", borderBottom: "1px solid var(--border)" },
-  jsonTitle: { fontSize: "13px", fontWeight: 500 },
-  jsonSub: { fontSize: "12px", color: "var(--faint)" },
-  pre: { margin: 0, padding: "16px", fontSize: "12px", fontFamily: "var(--mono)", color: "var(--dim)", maxHeight: "320px", overflow: "auto", lineHeight: 1.5 },
-};

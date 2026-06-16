@@ -12,8 +12,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="da" className="h-full antialiased">
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="en" className="h-full antialiased">
+      <head>
+        {/* Satoshi is the product's only typeface (Fontshare-only). */}
+        <link
+          rel="preconnect"
+          href="https://api.fontshare.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="stylesheet"
+          href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap"
+        />
+      </head>
+      <body className="min-h-full flex flex-col font-sans">{children}</body>
     </html>
   );
 }
