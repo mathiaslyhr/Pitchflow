@@ -25,6 +25,9 @@ branch; we merge to `main` only on the user's approval.
 - **Dashboard MVP:** grid of saved tactics — create new, open in board, rename, delete.
 - **Auth:** Supabase email OTP — user enters email, receives a 6-digit code, verifies it
   (`signInWithOtp` → `verifyOtp({ type: 'email' })`). No magic link.
+- **Unauthenticated board state:** when a user builds a tactic on `/board` without
+  being logged in and then signs in, the current board state is automatically saved
+  as their first tactic and they are redirected to `/board/[id]`. Do not discard work.
 - **Role data:** encode the full FM26 vocabulary now (`lib/roles.ts` + `lib/instructions.ts`)
   with placeholder coordinates; real offsets come later from the Visualizer.
 - **Git workflow:** branch per task; push + merge to `main` only when the user says approved.
@@ -36,7 +39,7 @@ Routes (App Router):
 ```
 /            public landing / showcase  (marketing + "Log in" / "Get started")
 /privacy     privacy policy
-/login       magic-link sign-in
+/login       email-OTP sign-in (enter email → 6-digit code → verify)
 /dashboard   saved tactics grid          (auth-gated)
 /board       the tactic board (new tactic)
 /board/[id]  open a saved tactic          (auth-gated)
@@ -55,9 +58,10 @@ Visual + structural base everything else sits on.
   (single source of truth) instead of being buried in the `S` object; expose them to Tailwind via
   `@theme`. Keep Satoshi/Inter/JetBrains Mono.
 - **Bigger board:** the pitch and player markers are too small (see screenshot) — there is far
-  more space to use. Increase the board's max width and the SVG render scale, enlarge player
-  markers and labels, and give the layout room to breathe (full-width app shell rather than a
-  narrow 920px card). Keep the drag/ghost/inspector behaviour.
+  more space to use. The pitch SVG should fill at least 60% of viewport width on desktop (min
+  480px rendered width); player markers should have a minimum radius of 14px at that scale with
+  labels legible at 13px. Remove the 920px card constraint and use a full-width app shell.
+  Keep the drag/ghost/inspector behaviour exactly as-is.
 - **English translation:** translate all current board UI strings to English ("Med bold" → "In
   possession", etc.); role behaviour/tags authored in English.
 - **App shell:** shared layout/header used by board + later dashboard.
