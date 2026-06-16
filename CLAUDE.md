@@ -52,7 +52,9 @@ docs/                    guideline.md, fm26-vocabulary.md, superpowers/specs/
 - **Phase colors (functional, kept separate from brand):** in possession = warm amber
   `#E8A93A`; out of possession = cool blue `#4A9EE0`. These are semantic so the user always
   knows which phase they're editing — do **not** rebrand them to purple.
-- **Type:** Satoshi (display/wordmark, via Fontshare), Inter (body/UI), JetBrains Mono (data).
+- **Type:** Satoshi only (via Fontshare) — display, body, UI, and data. One typeface
+  across the whole product; design tokens (colors + `--font-satoshi`) live in
+  `app/globals.css` as the single source of truth, exposed to Tailwind via `@theme`.
 - Rounded corners throughout; dark-first.
 
 ## Domain notes
